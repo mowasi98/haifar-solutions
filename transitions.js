@@ -1,6 +1,5 @@
 (function () {
-  const fadeDuration = 280;
-  const overlayDuration = 320;
+  const fadeDuration = 120;
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function isInternalPageLink(link) {
@@ -164,9 +163,7 @@
       return;
     }
 
-    window.requestAnimationFrame(function () {
-      window.requestAnimationFrame(revealPage);
-    });
+    window.requestAnimationFrame(revealPage);
   }
 
   window.addEventListener('pageshow', function (event) {

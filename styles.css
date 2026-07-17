@@ -23,18 +23,15 @@ body {
   flex-direction: column;
   overflow-x: hidden;
   opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1), transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.18s ease;
 }
 
 body.page-loaded {
   opacity: 1;
-  transform: translateY(0);
 }
 
 body.page-leaving {
   opacity: 0;
-  transform: translateY(-6px);
 }
 
 .page-overlay {
@@ -44,7 +41,7 @@ body.page-leaving {
   z-index: 9999;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.32s ease;
+  transition: opacity 0.15s ease;
 }
 
 .page-overlay.active {
@@ -59,7 +56,6 @@ body.page-leaving {
 
   body {
     opacity: 1;
-    transform: none;
     transition: none;
   }
 
