@@ -1,72 +1,177 @@
 (function () {
-  const pages = {
-    home: { title: 'Home | HaiFar Solutions' },
-    'who-we-are': { title: 'Who We Are | HaiFar Solutions' },
-    'what-we-do': { title: 'What We Do | HaiFar Solutions' },
-    'our-story': { title: 'Our Story | HaiFar Solutions' },
-    'our-vision': { title: 'Our Vision | HaiFar Solutions' },
-    contact: { title: 'Contact | HaiFar Solutions' }
-  };
-
+  const transitionMs = 120;
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let currentPage = 'home';
+  const pageCache = new Map();
+  let isNavigating = false;
+  let currentPageUrl = resolveUrl(window.location.href);
   let parallaxBg = null;
   let parallaxPanel = null;
+  let scrollHandler = null;
 
-  function getPageFromHash() {
-    const hash = window.location.hash.replace('#', '');
-    return pages[hash] ? hash : 'home';
+  function resolveUrl(href) {
+    return new URL(href, window.location.href).href;
   }
 
-  function updateParallax() {
-    if (!parallaxBg || !parallaxPanel || currentPage !== 'home') {
-      return;
+  function isInternalPageLink(link) {
+    const href = link.getAttribute('href');
+    if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+      return false;
+    }
+    if (link.target === '_blank' || link.hasAttribute('download')) {
+      return false;
     }
 
-    if (window.matchMedia('(max-width: 768px)').matches || prefersReducedMotion) {
-      parallaxBg.style.transform = 'none';
-      return;
+    const url = new URL(href, window.location.href);
+    if (url.origin !== window.location.origin) {
+      return false;
     }
 
-    const scrolled = window.scrollY - parallaxPanel.offsetTop;
-    parallaxBg.style.transform = 'translateY(' + (scrolled * 0.25) + 'px)';
+    const path = url.pathname;
+    return path.endsWith('.html') || path.endsWith('/') || /\/index\.html?$/.test(path);
   }
 
-  function setActiveNav(pageId) {
-    document.querySelectorAll('nav a[data-page]').forEach(function (link) {
-      link.classList.toggle('active', link.getAttribute('data-page') === pageId);
+  function wait(ms) {
+    return new Promise(function (resolve) {
+      window.setTimeout(resolve, ms);
     });
   }
 
-  function showPage(pageId, updateHistory) {
-    if (!pages[pageId]) {
-      return;
+  function closeMobileNav() {
+    const nav = document.querySelector('header nav');
+    const toggle = document.querySelector('.nav-toggle');
+    if (nav) {
+      nav.classList.remove('open');
     }
-
-    if (pageId === currentPage) {
-      window.scrollTo(0, 0);
-      return;
+    if (toggle) {
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-label', 'Open menu');
     }
+  }
 
-    document.querySelectorAll('.page-section').forEach(function (section) {
-      const isActive = section.id === pageId;
-      section.classList.toggle('active', isActive);
-      section.hidden = !isActive;
-    });
+  function syncNavActive(doc) {
+    const currentLinks = document.querySelectorAll('header nav a');
+    const nextLinks = doc.querySelectorAll('header nav a');
+    const activeHref = [];
 
-    currentPage = pageId;
-    document.title = pages[pageId].title;
-    setActiveNav(pageId);
-
-    if (updateHistory !== false) {
-      const newHash = pageId === 'home' ? '#home' : '#' + pageId;
-      if (window.location.hash !== newHash) {
-        history.pushState({ page: pageId }, '', newHash);
+    nextLinks.forEach(function (link) {
+      if (link.classList.contains('active')) {
+        activeHref.push(link.getAttribute('href'));
       }
+    });
+
+    currentLinks.forEach(function (link) {
+      const href = link.getAttribute('href');
+      link.classList.toggle('active', activeHref.indexOf(href) !== -1);
+    });
+  }
+
+  function teardownParallax() {
+    if (scrollHandler) {
+      window.removeEventListener('scroll', scrollHandler);
+      scrollHandler = null;
+    }
+    parallaxBg = null;
+    parallaxPanel = null;
+  }
+
+  function setupParallax() {
+    teardownParallax();
+
+    parallaxBg = document.getElementById('parallaxBg');
+    parallaxPanel = document.querySelector('.parallax-panel');
+    if (!parallaxBg || !parallaxPanel) {
+      return;
     }
 
-    window.scrollTo(0, 0);
+    function updateParallax() {
+      if (window.matchMedia('(max-width: 768px)').matches || prefersReducedMotion) {
+        parallaxBg.style.transform = 'none';
+        return;
+      }
+
+      const scrolled = window.scrollY - parallaxPanel.offsetTop;
+      parallaxBg.style.transform = 'translateY(' + (scrolled * 0.25) + 'px)';
+    }
+
+    scrollHandler = updateParallax;
+    window.addEventListener('scroll', scrollHandler, { passive: true });
     updateParallax();
+  }
+
+  async function fetchPage(url) {
+    if (pageCache.has(url)) {
+      return pageCache.get(url);
+    }
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to load page');
+    }
+
+    const html = await response.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const payload = {
+      mainHtml: doc.querySelector('main') ? doc.querySelector('main').innerHTML : '',
+      title: doc.querySelector('title') ? doc.querySelector('title').textContent : document.title,
+      doc: doc
+    };
+
+    pageCache.set(url, payload);
+    return payload;
+  }
+
+  function prefetchPage(url) {
+    if (pageCache.has(url)) {
+      return;
+    }
+
+    fetchPage(url).catch(function () {
+      pageCache.delete(url);
+    });
+  }
+
+  async function navigateTo(url, updateHistory) {
+    const targetUrl = resolveUrl(url);
+    if (isNavigating) {
+      return;
+    }
+
+    if (targetUrl === currentPageUrl && updateHistory !== false) {
+      return;
+    }
+
+    isNavigating = true;
+    const main = document.querySelector('main');
+
+    try {
+      if (prefersReducedMotion || !main) {
+        window.location.href = targetUrl;
+        return;
+      }
+
+      main.classList.add('is-switching');
+      await wait(transitionMs);
+
+      const page = await fetchPage(targetUrl);
+      main.innerHTML = page.mainHtml;
+      document.title = page.title;
+      syncNavActive(page.doc);
+      currentPageUrl = targetUrl;
+
+      if (updateHistory !== false) {
+        history.pushState({ url: targetUrl }, '', targetUrl);
+      }
+
+      window.scrollTo(0, 0);
+      setupParallax();
+      closeMobileNav();
+
+      main.classList.remove('is-switching');
+    } catch (error) {
+      window.location.href = targetUrl;
+    } finally {
+      isNavigating = false;
+    }
   }
 
   function setupMobileNav() {
@@ -93,56 +198,37 @@
     });
   }
 
-  function setupNav() {
-    document.querySelectorAll('nav a[data-page]').forEach(function (link) {
-      link.addEventListener('click', function (event) {
-        event.preventDefault();
-        const pageId = link.getAttribute('data-page');
-        showPage(pageId);
+  function setupNavigation() {
+    document.addEventListener('click', function (event) {
+      const link = event.target.closest('a');
+      if (!link || !isInternalPageLink(link)) {
+        return;
+      }
 
-        const nav = document.querySelector('header nav');
-        const toggle = document.querySelector('.nav-toggle');
-        if (nav) {
-          nav.classList.remove('open');
-        }
-        if (toggle) {
-          toggle.setAttribute('aria-expanded', 'false');
-          toggle.setAttribute('aria-label', 'Open menu');
-        }
-      });
+      event.preventDefault();
+      navigateTo(link.getAttribute('href'));
     });
 
-    document.querySelector('.site-title a')?.addEventListener('click', function (event) {
-      event.preventDefault();
-      showPage('home');
+    document.querySelectorAll('header nav a').forEach(function (link) {
+      link.addEventListener('mouseenter', function () {
+        prefetchPage(resolveUrl(link.getAttribute('href')));
+      });
+      link.addEventListener('touchstart', function () {
+        prefetchPage(resolveUrl(link.getAttribute('href')));
+      }, { passive: true });
+    });
+
+    window.addEventListener('popstate', function () {
+      navigateTo(window.location.href, false);
     });
   }
 
   function init() {
-    parallaxBg = document.getElementById('parallaxBg');
-    parallaxPanel = document.querySelector('.parallax-panel');
-
+    currentPageUrl = resolveUrl(window.location.href);
     setupMobileNav();
-    setupNav();
-
-    const startPage = getPageFromHash();
-    showPage(startPage, false);
-
-    if (window.location.hash === '' && startPage === 'home') {
-      history.replaceState({ page: 'home' }, '', '#home');
-    }
-
-    window.addEventListener('hashchange', function () {
-      showPage(getPageFromHash(), false);
-    });
-
-    window.addEventListener('popstate', function (event) {
-      const pageId = event.state && event.state.page ? event.state.page : getPageFromHash();
-      showPage(pageId, false);
-    });
-
-    window.addEventListener('scroll', updateParallax, { passive: true });
-    updateParallax();
+    setupNavigation();
+    setupParallax();
+    history.replaceState({ url: currentPageUrl }, '', currentPageUrl);
   }
 
   if (document.readyState === 'loading') {

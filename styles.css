@@ -21,14 +21,17 @@ body {
 
 main {
   flex: 1;
+  transition: opacity 0.12s ease;
 }
 
-.page-section {
-  display: none;
+main.is-switching {
+  opacity: 0;
 }
 
-.page-section.active {
-  display: block;
+@media (prefers-reduced-motion: reduce) {
+  main {
+    transition: none;
+  }
 }
 
 a {
