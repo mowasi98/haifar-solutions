@@ -22,31 +22,23 @@ body {
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
+}
+
+main {
+  flex: 1;
+  transition: opacity 0.12s ease;
+}
+
+main.is-switching {
   opacity: 0;
-  transition: opacity 0.18s ease;
 }
 
-body.page-loaded {
-  opacity: 1;
+.page-section {
+  display: none;
 }
 
-body.page-leaving {
-  opacity: 0;
-}
-
-.page-overlay {
-  position: fixed;
-  inset: 0;
-  background: #fff;
-  z-index: 9999;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-}
-
-.page-overlay.active {
-  opacity: 1;
-  pointer-events: all;
+.page-section.active {
+  display: block;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -54,13 +46,8 @@ body.page-leaving {
     scroll-behavior: auto;
   }
 
-  body {
-    opacity: 1;
+  main {
     transition: none;
-  }
-
-  .page-overlay {
-    display: none;
   }
 }
 
@@ -71,10 +58,6 @@ a {
 
 a:hover {
   text-decoration: underline;
-}
-
-main {
-  flex: 1;
 }
 
 img {
