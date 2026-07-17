@@ -86,7 +86,8 @@
   function setupMobileNav() {
     const header = document.querySelector('header');
     const nav = document.querySelector('header nav');
-    if (!header || !nav || header.querySelector('.nav-toggle')) {
+    const headerBar = document.querySelector('.header-bar');
+    if (!header || !nav || !headerBar || header.querySelector('.nav-toggle')) {
       return;
     }
 
@@ -96,9 +97,10 @@
     toggle.setAttribute('aria-label', 'Open menu');
     toggle.setAttribute('aria-expanded', 'false');
     toggle.innerHTML = '<span></span><span></span><span></span>';
-    header.insertBefore(toggle, nav);
+    headerBar.insertBefore(toggle, headerBar.firstChild);
 
-    toggle.addEventListener('click', function () {
+    toggle.addEventListener('click', function (event) {
+      event.stopPropagation();
       const isOpen = nav.classList.toggle('open');
       toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
       toggle.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
