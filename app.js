@@ -39,48 +39,34 @@
   }
 
   function showPage(pageId, updateHistory) {
-    if (!pages[pageId] || pageId === currentPage) {
-      if (pageId === currentPage) {
-        window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
-      }
+    if (!pages[pageId]) {
       return;
     }
 
-    const sections = document.querySelectorAll('.page-section');
-    const main = document.querySelector('main');
-
-    function swap() {
-      sections.forEach(function (section) {
-        const isActive = section.id === pageId;
-        section.classList.toggle('active', isActive);
-        section.hidden = !isActive;
-      });
-
-      currentPage = pageId;
-      document.title = pages[pageId].title;
-      setActiveNav(pageId);
-
-      if (updateHistory !== false) {
-        const newHash = pageId === 'home' ? '#home' : '#' + pageId;
-        if (window.location.hash !== newHash) {
-          history.pushState({ page: pageId }, '', newHash);
-        }
-      }
-
+    if (pageId === currentPage) {
       window.scrollTo(0, 0);
-      updateParallax();
-    }
-
-    if (prefersReducedMotion || !main) {
-      swap();
       return;
     }
 
-    main.classList.add('is-switching');
-    window.setTimeout(function () {
-      swap();
-      main.classList.remove('is-switching');
-    }, 90);
+    document.querySelectorAll('.page-section').forEach(function (section) {
+      const isActive = section.id === pageId;
+      section.classList.toggle('active', isActive);
+      section.hidden = !isActive;
+    });
+
+    currentPage = pageId;
+    document.title = pages[pageId].title;
+    setActiveNav(pageId);
+
+    if (updateHistory !== false) {
+      const newHash = pageId === 'home' ? '#home' : '#' + pageId;
+      if (window.location.hash !== newHash) {
+        history.pushState({ page: pageId }, '', newHash);
+      }
+    }
+
+    window.scrollTo(0, 0);
+    updateParallax();
   }
 
   function setupMobileNav() {
@@ -138,8 +124,6 @@
 
     setupMobileNav();
     setupNav();
-
-    document.body.classList.add('page-loaded');
 
     const startPage = getPageFromHash();
     showPage(startPage, false);

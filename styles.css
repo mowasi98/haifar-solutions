@@ -5,12 +5,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
-}
-
-@view-transition {
-  navigation: auto;
 }
 
 body {
@@ -26,11 +21,6 @@ body {
 
 main {
   flex: 1;
-  transition: opacity 0.12s ease;
-}
-
-main.is-switching {
-  opacity: 0;
 }
 
 .page-section {
@@ -39,16 +29,6 @@ main.is-switching {
 
 .page-section.active {
   display: block;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
-  main {
-    transition: none;
-  }
 }
 
 a {
