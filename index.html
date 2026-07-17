@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div id="page-overlay" class="page-overlay active" aria-hidden="true"></div>
 
   <header>
     <div class="site-title"><a href="index.html">HaiFar Solutions</a></div>
@@ -57,6 +58,10 @@
     const parallaxPanel = document.querySelector('.parallax-panel');
 
     function updateParallax() {
+      if (window.matchMedia('(max-width: 768px)').matches || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        parallaxBg.style.transform = 'none';
+        return;
+      }
       const scrolled = window.scrollY - parallaxPanel.offsetTop;
       parallaxBg.style.transform = 'translateY(' + (scrolled * 0.25) + 'px)';
     }

@@ -4,6 +4,15 @@
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+@view-transition {
+  navigation: auto;
+}
+
 body {
   font-family: Arial, Helvetica, sans-serif;
   color: #1a2b56;
@@ -12,22 +21,50 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
   opacity: 0;
-  transition: opacity 0.45s ease;
+  transform: translateY(8px);
+  transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1), transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body.page-loaded {
   opacity: 1;
+  transform: translateY(0);
 }
 
 body.page-leaving {
   opacity: 0;
+  transform: translateY(-6px);
+}
+
+.page-overlay {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.32s ease;
+}
+
+.page-overlay.active {
+  opacity: 1;
+  pointer-events: all;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   body {
     opacity: 1;
+    transform: none;
     transition: none;
+  }
+
+  .page-overlay {
+    display: none;
   }
 }
 
@@ -44,10 +81,20 @@ main {
   flex: 1;
 }
 
+img {
+  max-width: 100%;
+  height: auto;
+}
+
 /* Header */
 header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   text-align: center;
-  padding: 30px 20px 20px;
+  padding: 20px 16px 16px;
+  background: rgba(255, 255, 255, 0.98);
+  border-bottom: 1px solid #eee;
 }
 
 .site-title {
@@ -55,7 +102,11 @@ header {
   font-weight: normal;
   letter-spacing: 1px;
   line-height: 1.4;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+}
+
+.site-title a {
+  display: inline-block;
 }
 
 nav ul {
@@ -63,17 +114,39 @@ nav ul {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px 24px;
+  gap: 8px 20px;
 }
 
 nav a {
   font-size: 14px;
   color: #1a2b56;
+  display: inline-block;
+  padding: 6px 4px;
+  min-height: 44px;
+  line-height: 32px;
 }
 
 nav a.active {
   font-weight: bold;
   text-decoration: underline;
+}
+
+.nav-toggle {
+  display: none;
+  background: none;
+  border: 1px solid #1a2b56;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 10px 12px;
+  margin: 0 auto 12px;
+}
+
+.nav-toggle span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: #1a2b56;
+  margin: 5px 0;
 }
 
 /* Hero banner (home only) */
@@ -535,17 +608,78 @@ footer .copyright {
 }
 
 @media (max-width: 768px) {
+  header {
+    padding: 16px 16px 12px;
+  }
+
+  .site-title {
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+
+  .nav-toggle {
+    display: block;
+  }
+
+  nav ul {
+    display: none;
+    flex-direction: column;
+    gap: 0;
+    padding-top: 8px;
+  }
+
+  nav ul.open {
+    display: flex;
+  }
+
+  nav a {
+    width: 100%;
+    padding: 12px 8px;
+    line-height: 1.4;
+  }
+
+  .hero {
+    min-height: 320px;
+    padding: 48px 20px;
+  }
+
   .hero h1 {
-    font-size: 26px;
+    font-size: 24px;
+    letter-spacing: 1px;
+  }
+
+  .hero p {
+    font-size: 16px;
+  }
+
+  .page-heading {
+    padding: 32px 16px 20px;
+  }
+
+  .page-heading h1 {
+    font-size: 24px;
+  }
+
+  .page-heading p {
+    font-size: 15px;
+  }
+
+  .content {
+    padding: 0 16px 32px;
+  }
+
+  .content p {
+    font-size: 15px;
+    text-align: left;
   }
 
   .parallax-wrap {
-    padding: 24px 16px 40px;
+    padding: 20px 16px 32px;
   }
 
   .parallax-panel {
-    min-height: 340px;
-    padding: 36px 24px;
+    min-height: auto;
+    padding: 32px 20px;
   }
 
   .parallax-content h2 {
@@ -556,9 +690,22 @@ footer .copyright {
     font-size: 14px;
   }
 
+  .service-cards {
+    flex-direction: column;
+  }
+
   .service-card {
-    min-height: 360px;
-    padding: 32px 24px;
+    flex: 1 1 100%;
+    min-height: auto;
+    padding: 28px 20px;
+  }
+
+  .contact-block {
+    padding: 0 16px 40px;
+  }
+
+  footer {
+    padding: 32px 16px;
   }
 
   .side-row,
@@ -567,10 +714,20 @@ footer .copyright {
   }
 
   .side-text {
-    padding: 28px 24px;
+    padding: 24px 20px;
   }
 
   .side-image img {
-    min-height: 220px;
+    min-height: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero h1 {
+    font-size: 22px;
+  }
+
+  .parallax-content .banner-subtitle {
+    margin-bottom: 16px;
   }
 }
