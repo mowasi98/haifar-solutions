@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="HaiFar Solutions — Flexible project planning, project controls, and commercial management support for Tier 2 and Tier 3 contractors.">
+  <title>Home | HaiFar Solutions</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header>
+    <div class="site-title"><a href="index.html">HaiFar Solutions</a></div>
+    <nav>
+      <ul>
+        <li><a href="index.html" class="active">Home</a></li>
+        <li><a href="who-we-are.html">Who We Are</a></li>
+        <li><a href="what-we-do.html">What We Do</a></li>
+        <li><a href="our-story.html">Our Story</a></li>
+        <li><a href="our-vision.html">Our Vision</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <h1>HaiFar Solutions<br>Welcomes You</h1>
+        <p>Project Planning &amp; Controls Consultancy</p>
+      </div>
+    </section>
+
+    <section class="parallax-wrap" id="welcome">
+      <div class="parallax-panel">
+        <div class="parallax-bg" id="parallaxBg"></div>
+        <div class="parallax-overlay"></div>
+        <div class="parallax-content">
+          <h2>Welcome</h2>
+          <p class="banner-subtitle">Flexible planning support for successful project delivery</p>
+          <p>We believe that successful project delivery begins with robust planning from the outset. By prioritising planning support during the early stages of a project, we help clients establish realistic programmes, improve project visibility, and reduce delivery risk.</p>
+          <p>Our services are particularly valuable for Tier 2 and Tier 3 contractors and organisations that require specialist planning expertise without the commitment of a full-time resource.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p class="footer-name">HaiFar Solutions</p>
+    <p><a href="mailto:enquiries@haifarsolutions.com">enquiries@haifarsolutions.com</a></p>
+    <p>Contact number to be confirmed</p>
+    <p class="copyright">&copy; 2026 by HaiFar Solutions. All rights reserved.</p>
+  </footer>
+
+  <script>
+    const parallaxBg = document.getElementById('parallaxBg');
+    const parallaxPanel = document.querySelector('.parallax-panel');
+
+    function updateParallax() {
+      const scrolled = window.scrollY - parallaxPanel.offsetTop;
+      parallaxBg.style.transform = 'translateY(' + (scrolled * 0.25) + 'px)';
+    }
+
+    window.addEventListener('scroll', updateParallax, { passive: true });
+    updateParallax();
+  </script>
+  <script src="transitions.js"></script>
+
+</body>
+</html>
